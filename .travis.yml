@@ -1,0 +1,22 @@
+sudo: required
+services:
+- docker
+
+before_install:
+- docker build -t prabhatjena/multi-docker -f ./client/Dockerfile.dev ./client
+
+script:
+- docker run -e CI=true prabhatjena/multi-docker npm test
+
+after_success:
+- docker build -t prabhatjena/multi-client ./client
+- docker build -t prabhatjena/multi-nginx ./nginx
+- docker build -t prabhatjena/multi-server ./server
+- docker build -t prabhatjena/multi-worker ./worker
+# Log in to the docker CLI
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Take those images and push them to docker hub
+- docker push prabhatjena/multi-client
+- docker push prabhatjena/multi-nginx
+- docker push prabhatjena/multi-server
+- docker push prabhatjena/multi-worker
